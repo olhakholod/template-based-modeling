@@ -3,9 +3,11 @@ import math
 import Bio.PDB as pdb
 
 import matplotlib as mpl
+mpl.use("TkAgg")
+from matplotlib import pyplot as plt
+
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def distance(point1, point2):
@@ -18,6 +20,7 @@ def pdf(tarDistance, temDistance, sigma):
     return prob
 
 def objProb(tarPoints, temPoints, temW, sigma):
+    # initialization
     nTarPts = tarPoints.shape[0]
     nTemplates = temPoints.shape[0]
     nTemPts = temPoints.shape[1]
@@ -28,11 +31,13 @@ def objProb(tarPoints, temPoints, temW, sigma):
 
     pdfArray = np.zeros((nTemplates, nTarPts, nTarPts))
 
-    # compute distances between target and template atoms
+    # compute distances for target and template atoms
+    # compute distances for target atoms 
     for i in range(0,nTarPts-1):
         for j in range(i+1,nTarPts):
             tarDisArray[i,j] = distance(tarPoints[i,:], tarPoints[j,:])
-            
+    
+    # compute distances for template atoms         
     for k in range(0,nTemplates):
         for i in range(0,nTemPts-1):
             for j in range(i+1,nTemPts):
@@ -65,15 +70,27 @@ def gradient(tarPoints, tarDisArray, sumPdf, sumCache):
     nTar = tarDisArray.shape[0]
 
     gradFd = np.zeros(tarDisArray.shape)
+    # gradFx = np.zeros((nTar,1))
+    # gradFy = np.zeros((nTar,1))
+    # gradFz = np.zeros((nTar,1))
     gradFpoints = np.zeros((nTar,3))
 
     gradFd = (1/sumPdf) * sumCache
+    # print('gradFd: ')
+    # print(gradFd)
 
     for i in range(0,nTar):
         if (i < nTar-1):
+            # gradFx[i] = gradFd[i,i+1] * (tarPoints[i,0] - tarPoints[i+1,0])/tarDisArray[i,i+1]
+            # gradFy[i] = gradFd[i,i+1] * (tarPoints[i,1] - tarPoints[i+1,1])/tarDisArray[i,i+1]
+            # gradFz[i] = gradFd[i,i+1] * (tarPoints[i,2] - tarPoints[i+1,2])/tarDisArray[i,i+1]
             gradFpoints[i] = gradFd[i,i+1] * (tarPoints[i] - tarPoints[i+1])/tarDisArray[i,i+1]
         else:
+            # gradFx[i] = gradFd[1,i] * (tarPoints[i,0] - tarPoints[1,0])/tarDisArray[1,i]
+            # gradFy[i] = gradFd[1,i] * (tarPoints[i,1] - tarPoints[1,1])/tarDisArray[1,i]
+            # gradFz[i] = gradFd[1,i] * (tarPoints[i,2] - tarPoints[1,2])/tarDisArray[1,i]
             gradFpoints[i] = gradFd[1,i] * (tarPoints[i] - tarPoints[1])/tarDisArray[1,i]
+    # gradFpoints = np.hstack((gradFx, gradFy, gradFz))
     return gradFd, gradFpoints
 
 
@@ -154,6 +171,7 @@ def main():
     tarFile = 'target_T0951.fasta'
     temFile = '4i1a.pdb'
     
+    # select points from template that align with target (need to check)
     temPoints0 = getTemplate(temFile)
     tem1 = temPoints0[0:8, :]
     tem2 = temPoints0[10:28, :]
@@ -162,13 +180,29 @@ def main():
 
     tarPoints = temPoints - np.random.rand(temPoints.shape[0], temPoints.shape[1])*10
     temPoints = np.reshape(temPoints, (1,temPoints.shape[0], temPoints.shape[1]))
+    # tarPoints = np.random.randint(15, 20, size=(temPoints.shape[1],3))/1.0
 
+    # tarPoints = tarPoints.astype(float)
+    # temPoints = temPoints.astype(float)
+
+    # temW = [0.4, 0.6]
     temW = [1.0]
 
     sigma = 0.5
 
     optimalTarget = gradDescent(tarPoints, temPoints, temW, sigma, alpha=0.01, tolerance=10**(-5), maxiter=1000)
     print('optimalTarget: \n', optimalTarget)
+
+    # visualize both target and template protein chains
+    mpl.rcParams['legend.fontsize'] = 10
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.plot(temPoints[0,:,0], temPoints[0,:,1], temPoints[0,:,2], label='template')
+    ax.plot(optimalTarget[:,0], optimalTarget[:,1], optimalTarget[:,2], label='target approximation')
+    ax.legend(['Template','Target'])
+    fig.savefig('target_T0951.png')
+    plt.show()
+
 
 if __name__ == '__main__':
     main()

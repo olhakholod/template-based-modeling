@@ -1,11 +1,13 @@
 # Libraries/imports
 import os
 import numpy as np
+import math
 
 # Global variables
-alignment_dir  = "../test/"
-alignment_file = "T0951.ali"
 
+ALIGNMENT_PATH = "../data/alignment/aligned_sequences.ali"
+TEMP_PDB_PATH  = "../data/template_4i1a.pdb"
+TARG_PDB_PATH  = "../test/target_5z82.pdb"
 
 # Functions
 def load_sequences_from_file(alignment_file):
@@ -57,30 +59,45 @@ def load_coordinates_from_file(file,sequence):
 			j += 1
 		else:
 			new_a.append('UNK')
-			new_x.append(0)
-			new_y.append(0)
-			new_z.append(0)
+			new_x.append(math.inf)
+			new_y.append(math.inf)
+			new_z.append(math.inf)
 			new_t.append(0)
 	return new_a,new_x,new_y,new_z,new_t
 
-def distances(x,y,z):
-	d_x   = []
-	for i in range(len(x)-1):
-		row_x = []
-		for j in range(i+1,len(x)):
-			row_x.append(x[i] - x[j])
-		d_x.append(row_x)
+def distance(x1,x2,y1,y2,z1,z2):
+	'''
+	Calculate euclidian distance explicitly.
+	'''
+	return math.sqrt(((x2-x1)**2)+((y2-y1)**2)+((z2-z1)**2))
 
-	print(d_x)
-	print(len(x),len(d_x))
+def np_distance(a,b):
+	'''
+	Calculate euclidean distance using numpy vector norm.
+	'''
+	return np.linalg.norm(a-b)
 
+def distance_matrix(x,y,z): #this is a silly way to do it, but it works...
+	'''
+	distance_matrix calculates a distance matrix for each residue 
+	pair i and j in a sequence
+	'''
+	n = len(x)
+	D = np.zeros((n,n))
+	for i in range(n):
+		for j in range(n):
+			if x[i]!=math.inf and x[j]!=math.inf:
+				D[i][j] = distance(x[i],x[j],y[i],y[j],z[i],z[j])
+			else:
+				D[i][j] = math.inf
+	return D
 
 # Main (this runs when calling 'python3 preprocessing.py')
 def main():
-	# print("Hello world! This is main.")
-	n,s       = load_sequences_from_file(alignment_dir+alignment_file)
-	a,x,y,z,t = load_coordinates_from_file('../data/target_native_structure_5z82.pdb',s[0])
-	distances(x,y,z)
+	n,s       = load_sequences_from_file(ALIGNMENT_PATH)
+	a,x,y,z,t = load_coordinates_from_file(TEMP_PDB_PATH,s[1])
+	d = distance_matrix(x,y,z)
+
 
 if __name__ == '__main__':
 	main()

@@ -5,9 +5,7 @@ import Bio.PDB as pdb
 import matplotlib as mpl
 mpl.use("TkAgg")
 from matplotlib import pyplot as plt
-
 from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
 
 
 def distance(point1, point2):

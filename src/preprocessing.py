@@ -47,6 +47,7 @@ def load_coordinates_from_file(file,sequence):
 				z.append(float(line[46:54]))
 				t.append(float(line[60:66]))
 	fp.close()
+	# print(distance(max(x),min(x),max(y),min(y),max(z),min(z)))
 	new_a,new_x,new_y,new_z,new_t = [],[],[],[],[]
 	j = 0
 	for i in sequence:
@@ -89,15 +90,44 @@ def distance_matrix(x,y,z): #this is a silly way to do it, but it works...
 			if x[i]!=math.inf and x[j]!=math.inf:
 				D[i][j] = distance(x[i],x[j],y[i],y[j],z[i],z[j])
 			else:
-				D[i][j] = math.inf
+				D[i][j] = 150.0
 	return D
+
+def tm_score():
+    names,sequences = load_sequences_from_file(ALIGNMENT_PATH) #load aligned seqs of targ and temp
+    aligned_target  = sequences[0] #get the aligned sequence for target (first one)
+    l_target        = 276 #fix to len(target_sequence) for any seq? ...nah.
+    d_0             = (1.24*np.cbrt(l_target-15))-1.8 #d_0 is calculated like this..god knows why..
+    scores          = [] #store the scores of the regions here to pick a max after
+    regions         = []
+    aligned_region  = [] #temporarily store regions here
+    flag            = 0 #flag to tell if it's already reading a region or not
+    for i in range(len(aligned_target)):
+        if aligned_target[i]!='-':
+            if flag==0: # new region, begin reading
+                aligned_region = [i]
+                flag = 1
+            else: # already reading a region keep going...
+                aligned_region.append(i)
+        else:
+            if flag==0:
+                continue 
+            else:
+                regions.append(aligned_region) #append indexes of region
+                flag = 0
+    regions.append(aligned_region) #append last indexes of region
+
+    for i in regions:
+    	# d_i = distance()
+ 
+
 
 # Main (this runs when calling 'python3 preprocessing.py')
 def main():
 	n,s       = load_sequences_from_file(ALIGNMENT_PATH)
 	a,x,y,z,t = load_coordinates_from_file(TEMP_PDB_PATH,s[1])
 	d = distance_matrix(x,y,z)
-
+	tm_score()
 
 if __name__ == '__main__':
 	main()

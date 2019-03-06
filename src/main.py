@@ -202,7 +202,6 @@ def gradDescent(tarPoints0, temPoints, temW, sigma, alpha=0.05, tolerance=10**(-
 def getTemplate(temFile):
     parser = pdb.PDBParser()
     struct = parser.get_structure('template', temFile)
-
     temPoints = list()
     for model in struct:
         for chain in model:
@@ -242,10 +241,9 @@ def showFunction():
     return
 
 def main():
-    nseed = 1
-    np.random.seed(nseed)
-    tarFile = 'target_T0951.fasta'
-    temFile = '4i1a.pdb'
+    np.random.seed(1)
+    tarFile = '../data/target_sequence.txt'
+    temFile = '../data/template_4i1a.pdb'
     
     # select points from template that align with target (need to check)
     temPoints0 = getTemplate(temFile)

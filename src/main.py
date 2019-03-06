@@ -232,19 +232,28 @@ def writePoints(inFile, outFile, optimalPoints):
     io.save(outFile)
     return
 
-def showProtein():
+# def showProtein():
+#     return
 
-    return
+# def showFunction():
+#     return
 
-def showFunction():
-
-    return
+def metrics(optimalTarget):
+    names,sequences = load_sequences_from_file('../data/aligned_sequences.ali')
+    target_sequence = sequences[0]
+    realTarget = load_coordinates_from_file('../test/target_5z82.pdb',target_sequence)
+    rmsd  = rmsd(optimalTarget,realTarget)
+    wrmsd = rmsd_without_loops(optimalTarget,realTarget)
+    tm    = tm_score(optimalTarget,realTarget)
+    print("RMSD: ",rmsd)
+    print("RMSD (no loops): ",wrmsd)
+    print("TM-Score: ",tm)
 
 def main():
     np.random.seed(1)
     tarFile = '../data/target_sequence.txt'
     temFile = '../data/template_4i1a.pdb'
-    
+
     # select points from template that align with target (need to check)
     temPoints0 = getTemplate(temFile)
     tem1 = temPoints0[0:8, :]
@@ -267,17 +276,16 @@ def main():
     optimalTarget = gradDescent(tarPoints, temPoints, temW, sigma, alpha=0.01, tolerance=10**(-5), maxiter=1000)
     print('optimalTarget: \n', optimalTarget)
 
-    # visualize both target and template protein chains
-    mpl.rcParams['legend.fontsize'] = 10
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.plot(temPoints[0,:,0], temPoints[0,:,1], temPoints[0,:,2], label='template')
-    ax.plot(optimalTarget[:,0], optimalTarget[:,1], optimalTarget[:,2], label='target approximation')
-    ax.legend(['Template','Target'])
-    fig.savefig('target_T0951.png')
-    plt.show()
+    # # visualize both target and template protein chains
+    # mpl.rcParams['legend.fontsize'] = 10
+    # fig = plt.figure()
+    # ax = fig.gca(projection='3d')
+    # ax.plot(temPoints[0,:,0], temPoints[0,:,1], temPoints[0,:,2], label='template')
+    # ax.plot(optimalTarget[:,0], optimalTarget[:,1], optimalTarget[:,2], label='target approximation')
+    # ax.legend(['Template','Target'])
+    # fig.savefig('target_T0951.png')
+    # plt.show()
 
 
 if __name__ == '__main__':
     main()
-

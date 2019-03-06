@@ -279,11 +279,10 @@ def initialize_target_coordinates(s_temp,c_temp):
 	c_targ = initialize_loops(s_temp,c_temp,c_targ)
 	return c_targ
 
-def initialize_loops(s_temp,c_temp,c_targ):
-	out   = c_targ
+def get_loops(s_temp):
 	loops = []
 	loop  = []
-	flag  = 0 #flag 
+	flag  = 0
 	for i in range(len(s_temp)): # ----- COLLECT INDEXES LOOPS FROM SEQ
 		if s_temp[i]=='-': # LOOP
 			if flag==0: # new loop begin reading and change flag
@@ -298,6 +297,11 @@ def initialize_loops(s_temp,c_temp,c_targ):
 				loops.append(loop) #append indexes of region
 				flag = 0
 	loops.append(loop)
+	return loops
+
+def initialize_loops(s_temp,c_temp,c_targ):
+	out   = c_targ
+	loops = get_loops(s_temp)
 	for l in loops:
 		if l[0]==0:
 			for i in range(len(l)-1,-1,-1): #reverse
@@ -309,10 +313,10 @@ def initialize_loops(s_temp,c_temp,c_targ):
 
 def gradient(i,j,d_hat,std_dev):
 	d = distance(i,j) 
-	return -(1/std_dev)(d-d_hat)*((i - j)/d)
+	return -(1/std_dev)*(d-d_hat)*((i - j)/d)
 
 def gradient_descent(i,j,template_coords,D):
-	x = x + LEARNING_RATE * gradient(template_coords[i],template_coords[j])
+	x = x + LEARNING_RATE * gradient(template_coords[i],template_coords[j],d_hat,std_dev)
 
 def neighbor_distances(D):
 	d_1 = []
@@ -330,12 +334,10 @@ def main():
 	template_sequence = sequences[1]
 	template_coords   = load_coordinates_from_file(TEMP_PDB_PATH,template_sequence)
 
-	# print(len([i for i in c_temp if i[0]!=math.inf]))
 	template_distance_matrix = distance_matrix_vectorized(template_coords)
-	template_distance_ca1    = neighbor_distances(template_distance_matrix)
+	template_distance_d11    = neighbor_distances(template_distance_matrix)
 
-	print(template_distance_matrix[0:5][0:5])
-	print(neighbor_distances(template_distance_matrix[0:5][0:5]))
+	
 
 	# o = initialize_target_coordinates(template_sequence,template_coords)
 	# print(o[-10])
